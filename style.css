@@ -4,7 +4,7 @@ body, html {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #121212; /* Fondo oscuro */
+    background-color: #3b4c3b;  /* Gris verdoso */
     color: #ffffff; /* Texto blanco */
     text-align: center;
     font-family: 'Arial', sans-serif;
@@ -12,12 +12,14 @@ body, html {
 }
 
 canvas {
-    border: 5px solid #fff; /* Borde blanco */
-    border-radius: 10px; /* Bordes redondeados */
+    border: 5px solid #fff;
+    border: 2px solid #556B2F; /* Borde del tablero en un verde más claro */
+    background-color: #2f3b2e;  /* Tablero verde oscuro */
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2), 0 6px 20px rgba(0, 0, 0, 0.6);
-    background-color: #1e1e1e; /* Fondo oscuro del canvas */
-
+    display: block;
+    margin: 0 auto; /* Centrado horizontal */
 }
+
 
 button {
     padding: 10px 20px;
@@ -25,15 +27,16 @@ button {
     cursor: pointer;
     border: none;
     border-radius: 5px;
-    background-color: lime;
-    color: black;
+    background-color: #4CAF50; /* Verde brillante (en vez de lime) */
+    color: white; /* Blanco para mejor contraste con fondo oscuro */
     margin-top: 10px;
     transition: all 0.3s ease; /* Transición suave */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil para resaltar */
 }
 
 button:hover {
-    background-color: green; /* Cambio de color en hover */
-    color: white; /* Texto blanco en hover */
+    background-color: #45a049; /* Verde ligeramente más oscuro en hover */
+    color: white; /* Mantener texto blanco */
     transform: scale(1.05); /* Efecto de zoom */
 }
 
@@ -41,6 +44,7 @@ button:active {
     background-color: darkgreen; /* Color más oscuro al hacer clic */
     transform: scale(0.95); /* Reducir tamaño al hacer clic */
 }
+
 
 p {
     font-size: 16px;
@@ -109,7 +113,7 @@ p {
 }
 
 #puntuacion {
-    font-size: 24px;
+    font-size: 20px;
     color: white;
     text-align: center;
     font-family: Arial, sans-serif;
