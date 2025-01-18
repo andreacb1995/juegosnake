@@ -6,19 +6,22 @@
         
             const tamaño = 35;
 
-                let direccion = null; // Iniciar sin dirección
-            comida = {
+            let direccion = null; // Iniciar sin dirección
+
+            let comida = {
                 x: Math.floor(Math.random() * (tablero.width / tamaño)) * tamaño,
                 y: Math.floor(Math.random() * (tablero.height / tamaño)) * tamaño
             };
+
             // Calcular las dimensiones máximas para la comida
             const maxX = Math.floor(tablero.width / tamaño) * tamaño;
             const maxY = Math.floor(tablero.height / tamaño) * tamaño;
-            // Inicializar la serpiente en el centro del tablero
-            let serpiente = [
-                { x: Math.floor(maxX / 2 / tamaño) * tamaño, y: Math.floor(maxY / 2 / tamaño) * tamaño } // Coloca la cabeza en el centro
-            ];
 
+            let serpiente = [
+                { x: Math.floor(maxX / 2 / tamaño) * tamaño, y: Math.floor(maxY / 2 / tamaño) * tamaño }, // Cabeza
+                { x: (Math.floor(maxX / 2 / tamaño) - 1) * tamaño, y: Math.floor(maxY / 2 / tamaño) * tamaño } // Segundo segmento
+            ];
+                        
             // Velocidad inicial
             let velocidad = 250; 
             let juego;
@@ -53,7 +56,6 @@
                 }
             };
 
-
             /**
              * Dibuja el botón "Jugar" en el canvas.
              */
@@ -83,7 +85,7 @@
                 const rect = tablero.getBoundingClientRect(); // Obtener el rectángulo del canvas
                 const clickX = evento.clientX - rect.left;  // Coordenada X relativa al canvas
                 const clickY = evento.clientY - rect.top;   // Coordenada Y relativa al canvas
-            
+
                 // Verificar si el clic está dentro de los límites del botón
                 if (clickX >= botonX && clickX <= botonX + botonAncho && clickY >= botonY && clickY <= botonY + botonAlto) {
                     iniciarJuego(); // Llama a la función que inicia el juego
@@ -94,9 +96,11 @@
              * Inicia el juego y establece un intervalo para actualizar el tablero.
              */
             function iniciarJuego() {
-                juegoIniciado = true;
-                actualizarPuntuacion(); // Inicializar la puntuación
-                juego = setInterval(dibujar, velocidad);    
+                dibujar(); // Dibuja la serpiente y la manzana al iniciar el juego
+
+                //juegoIniciado = true;
+                //actualizarPuntuacion(); // Inicializar la puntuación
+                //juego = setInterval(dibujar, velocidad);    
             }
             // Detectar teclas para cambiar la dirección
             document.addEventListener('keydown', cambiarDireccion);
@@ -175,6 +179,7 @@
                 
                 // Dibujar la comida
                 dibujo.drawImage(imagenComida, comida.x, comida.y, tamaño, tamaño);
+                
 
                 // Dibujar la serpiente
                 serpiente.forEach((segmento, index) => {
@@ -203,12 +208,15 @@
                         // Restauramos el contexto para que no afecte a otros dibujos
                         dibujo.restore();
                     } 
+                    
                     // Dibujar el cuerpo de la serpiente (cuadrados)
                     else {
                         dibujo.fillStyle = '#556B2F'; // Color para el cuerpo de la serpiente
                         dibujo.fillRect(segmento.x, segmento.y, tamaño, tamaño); // Cuadrados para el cuerpo
                     }
                 });
+
+
                 // Verificar colisión con los bordes o el cuerpo
                 if (
                     cabezaX < 0 || cabezaY < 0 ||
@@ -220,7 +228,38 @@
                 }
 
             }
-
+            function mover() {
+                if (direccion === null) {
+                    return; // No mover la serpiente hasta que se elija una dirección
+                }
+            
+                // Crear nueva cabeza en base a la dirección actual
+                let nuevaCabeza;
+                const cabeza = serpiente[0];
+            
+                if (direccion === 'IZQUIERDA') nuevaCabeza = { x: cabeza.x - tamaño, y: cabeza.y };
+                if (direccion === 'DERECHA') nuevaCabeza = { x: cabeza.x + tamaño, y: cabeza.y };
+                if (direccion === 'ARRIBA') nuevaCabeza = { x: cabeza.x, y: cabeza.y - tamaño };
+                if (direccion === 'ABAJO') nuevaCabeza = { x: cabeza.x, y: cabeza.y + tamaño };
+            
+                // Agregar nueva cabeza al comienzo de la serpiente
+                serpiente.unshift(nuevaCabeza);
+            
+                // Verificar si la serpiente ha comido la manzana
+                if (nuevaCabeza.x === manzana.x && nuevaCabeza.y === manzana.y) {
+                    // Generar nueva manzana
+                    manzana = {
+                        x: Math.floor(Math.random() * maxX / tamaño) * tamaño,
+                        y: Math.floor(Math.random() * maxY / tamaño) * tamaño
+                    };
+                } else {
+                    // Eliminar el último segmento de la serpiente (movimiento normal)
+                    serpiente.pop();
+                }
+            
+                // Volver a dibujar todo
+                dibujar();
+            }
             /**
              * Detecta si la cabeza de la serpiente choquea con alguna parte de su cuerpo.
              * 
@@ -396,9 +435,11 @@
 
                 puntuacion = 0;
                 actualizarPuntuacion()
+
                 serpiente = [
-                    { x: Math.floor(maxX / 2 / tamaño) * tamaño, y: Math.floor(maxY / 2 / tamaño) * tamaño } // Coloca la cabeza en el centro
+                    { x: Math.floor(maxX / 2 / tamaño) * tamaño, y: Math.floor(maxY / 2 / tamaño) * tamaño } // Cabeza
                 ];
+                
 
                 direccion = null; // Iniciar sin dirección
                 comida = {
