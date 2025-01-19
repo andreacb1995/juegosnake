@@ -1,79 +1,86 @@
+/* Estilo global para el cuerpo y el HTML */
 body, html {
     height: 100%;
     margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #3b4c3b;  /* Gris verdoso */
-    color: #ffffff; /* Texto blanco */
+    background-color: #2f4f2f; 
+    color: #ffffff; 
     text-align: center;
     font-family: 'Arial', sans-serif;
     margin: 0;
 }
 
+/* Estilo para el canvas donde se dibuja el juego */
 canvas {
     border: 5px solid #fff;
-    border: 2px solid #556B2F; /* Borde del tablero en un verde más claro */
-    background-color: #2f3b2e;  /* Tablero verde oscuro */
+    border: 2px solid #556B2F; 
+    background-color: #2f3b2e;  
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2), 0 6px 20px rgba(0, 0, 0, 0.6);
     display: block;
-    margin: 0 auto; /* Centrado horizontal */
+    margin: 0 auto; 
+    transition: all 0.3s ease-in-out;
 }
 
-
+/* Estilo para los botones */
 button {
     padding: 10px 20px;
     font-size: 18px;
     cursor: pointer;
     border: none;
     border-radius: 5px;
-    background-color: #4CAF50; /* Verde brillante (en vez de lime) */
-    color: white; /* Blanco para mejor contraste con fondo oscuro */
+    background-color: #5aaf5a;
+    color: white; 
     margin-top: 10px;
-    transition: all 0.3s ease; /* Transición suave */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil para resaltar */
+    transition: all 0.3s ease; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
 }
 
+/* Efecto hover en los botones */
 button:hover {
-    background-color: #45a049; /* Verde ligeramente más oscuro en hover */
-    color: white; /* Mantener texto blanco */
-    transform: scale(1.05); /* Efecto de zoom */
+    background-color: #45a049; 
+    color: white; 
+    transform: scale(1.05); 
 }
 
+/* Efecto cuando se presiona el botón */
 button:active {
-    background-color: darkgreen; /* Color más oscuro al hacer clic */
-    transform: scale(0.95); /* Reducir tamaño al hacer clic */
+    background-color: darkgreen; 
+    transform: scale(0.95); 
 }
 
-
+/* Estilo para los párrafos */
 p {
     font-size: 16px;
-    color: #b3b3b3; /* Texto en gris claro */
+    color: #b3b3b3; 
     margin-top: 15px;
 }
 
-/* Ventana flotante */
+/* Estilo para la pantalla de nombre */
 .pantalla-nombre {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro semitransparente */
+    background-color: rgba(0, 0, 0, 0.8); 
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000; /* Encima de todo */
-    visibility: hidden; /* Oculto por defecto */
+    z-index: 1000; 
+    visibility: hidden; 
     opacity: 0;
-    transition: visibility 0.3s, opacity 0.3s; /* Transiciones suaves */
+    transition: visibility 0.3s, opacity 0.3s;
 }
 
+/* Mostrar la pantalla de nombre cuando tiene la clase 'mostrar' */
 .pantalla-nombre.mostrar {
     visibility: visible;
     opacity: 1;
 }
 
+/* Estilo para el contenido de la pantalla de nombre */
 .pantalla {
     background-color: white;
     padding: 20px 30px;
@@ -83,10 +90,12 @@ p {
     color: black;
 }
 
+/* Estilo para el título en la pantalla de nombre */
 #pantalla h2 {
     margin-top: 0;
 }
 
+/* Estilo para los campos de entrada en la pantalla de nombre */
 #pantalla input {
     width: 80%;
     padding: 10px;
@@ -96,6 +105,7 @@ p {
     font-size: 16px;
 }
 
+/* Estilo para los botones en la pantalla de nombre */
 #pantalla button {
     background-color: lime;
     color: black;
@@ -107,20 +117,30 @@ p {
     transition: background-color 0.3s;
 }
 
+/* Efecto hover en los botones dentro de la pantalla de nombre */
 #pantalla button:hover {
     background-color: green;
     color: white;
 }
 
+/* Estilo para la sección de puntuación */
 #puntuacion {
     font-size: 20px;
     color: white;
     text-align: center;
     font-family: Arial, sans-serif;
-    margin-bottom: 10px; /* Espacio entre el marcador y el canvas */
+    margin-bottom: 10px; 
+    transition: color 0.3s ease;
 }
 
+/* Estilo para los iconos o imágenes en la puntuación */
 #puntuacion i, #puntuacion img {
-    margin-right: 8px; /* Espacio entre el ícono y el texto */
-    vertical-align: middle; /* Alinear con el texto */
+    margin-right: 8px; 
+    vertical-align: middle; 
+}
+
+/* Efecto en la puntuación cuando cambia */
+.puntuacion-cambio {
+    transform: scale(1.1);
+    transition: all 0.3s ease-in-out;
 }

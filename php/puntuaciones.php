@@ -1,40 +1,39 @@
 <?php
-
-// Configuración de CORS
-header("Access-Control-Allow-Origin: *"); // Permitir todos los orígenes (puedes restringirlo a un dominio específico)
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); // Métodos permitidos
-header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Encabezados permitidos
+// Configuración de CORS para permitir peticiones desde cualquier origen
+header("Access-Control-Allow-Origin: *"); 
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); 
+header("Access-Control-Allow-Headers: Content-Type, Authorization"); 
 header("Content-Type: application/json");
 
-// Manejar solicitudes preflight (OPTIONS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200); // Respuesta OK para solicitudes preflight
+    http_response_code(200); 
     exit();
 }
 
 // Cargar la librería de MongoDB
-require __DIR__ . '/../vendor/autoload.php'; // Ruta al autoloader de Composer
+require __DIR__ . '/../vendor/autoload.php'; 
 
 
-// Conectar con MongoDB
+// Conexión a la base de datos MongoDB
 $cliente = new MongoDB\Client("mongodb://localhost:27017");
-$baseDatos = $cliente->juegosnake; // Base de datos
-$coleccion = $baseDatos->puntuaciones; // Colección
+$baseDatos = $cliente->juegosnake; // Base de datos "juegosnake"
+$coleccion = $baseDatos->puntuaciones;  // Colección "puntuaciones"
 
-// Determinar el método de la solicitud
 $metodo = $_SERVER['REQUEST_METHOD'];
 
 if ($metodo === 'POST') {
-    // Guardar puntuación
+    //Gestión de solicitud POST para guardar puntuación
     $datos = json_decode(file_get_contents("php://input"), true);
 
     if (isset($datos['nombre']) && isset($datos['puntos'])) {
+        // Crear el documento para insertar en la base de datos
         $documento = [
             'nombre' => $datos['nombre'],
             'puntos' => (int) $datos['puntos'],
             'fecha' => new MongoDB\BSON\UTCDateTime()
         ];
 
+        // Insertar el documento en la colección
         $coleccion->insertOne($documento);
 
         echo json_encode(['mensaje' => 'Puntuación guardada correctamente']);
@@ -43,12 +42,13 @@ if ($metodo === 'POST') {
         echo json_encode(['error' => 'Faltan datos']);
     }
 } elseif ($metodo === 'GET') {
-    // Obtener el Top 5 de puntuaciones
+    // Procesamiento de solicitud GET para obtener las 5 mejores puntuaciones
     $puntuaciones = $coleccion->find([], [
-        'sort' => ['puntos' => -1], // Ordenar por puntos descendente
+        'sort' => ['puntos' => -1], 
         'limit' => 5
     ]);
 
+    // Crear un array para almacenar las puntuaciones obtenidas
     $resultado = [];
     foreach ($puntuaciones as $puntuacion) {
         $resultado[] = [
@@ -56,7 +56,8 @@ if ($metodo === 'POST') {
             'puntos' => $puntuacion['puntos']
         ];
     }
-
+    
+    // Enviar el resultado como JSON
     echo json_encode($resultado);
 
 } else {

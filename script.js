@@ -1,166 +1,139 @@
         document.addEventListener('DOMContentLoaded', () => {
+            // Lienzo y contexto de dibujo
             const tablero = document.getElementById('juegoCanvas');
             const dibujo = tablero.getContext('2d');
 
+            // Puntuación inicial y tamaño de las celdas
             let puntuacion = 0; 
-        
             const tamaño = 35;
 
-            let direccion = null; // Iniciar sin dirección
+            // Ancho y alto del lienzo
+            const canvasWidth = tamaño * Math.floor(tablero.width / tamaño); 
+            const canvasHeight = tamaño * Math.floor(tablero.height / tamaño); 
+            tablero.width = canvasWidth;
+            tablero.height = canvasHeight;
 
+            // Posición inicial de la comida
             let comida = {
-                x: Math.floor(Math.random() * (tablero.width / tamaño)) * tamaño,
-                y: Math.floor(Math.random() * (tablero.height / tamaño)) * tamaño
-            };
+                x: Math.floor(Math.random() * (canvasWidth / tamaño)) * tamaño,
+                y: Math.floor(Math.random() * (canvasHeight / tamaño)) * tamaño
+            };   
 
-            // Calcular las dimensiones máximas para la comida
-            const maxX = Math.floor(tablero.width / tamaño) * tamaño;
-            const maxY = Math.floor(tablero.height / tamaño) * tamaño;
-
+            // Dirección y serpiente inicial
+            let direccion = null; 
             let serpiente = [
-                { x: Math.floor(maxX / 2 / tamaño) * tamaño, y: Math.floor(maxY / 2 / tamaño) * tamaño }, // Cabeza
-                { x: (Math.floor(maxX / 2 / tamaño) - 1) * tamaño, y: Math.floor(maxY / 2 / tamaño) * tamaño } // Segundo segmento
+                { x: Math.floor(canvasWidth / 2 / tamaño) * tamaño, y: Math.floor(canvasHeight / 2 / tamaño) * tamaño }, // Cabeza
+                { x: (Math.floor(canvasWidth / 2 / tamaño) - 1) * tamaño, y: Math.floor(canvasHeight / 2 / tamaño) * tamaño }, // Primer segmento del cuerpo
+                { x: (Math.floor(canvasWidth / 2 / tamaño) - 2) * tamaño, y: Math.floor(canvasHeight / 2 / tamaño) * tamaño }  // Segundo segmento del cuerpo
             ];
-                        
-            // Velocidad inicial
-            let velocidad = 250; 
-            let juego;
-
-            let pantallaActual = "inicio"; // Estado actual: "inicio", "introducirNombre", "top5"
-            let eventoReiniciarActivo = false; // Controla el evento de Enter
-
-            // Estado inicial
-            let juegoIniciado = false;
             
+            // Velocidad del juego
+            let velocidad = 250; 
+            let juego = null;
+
+            // Estado del juego
+            let pantallaActual = "inicio"; 
+            let eventoReiniciarActivo = false; 
+            let juegoIniciado = false;
+
+            // Imágenes de la comida y cabeza de la serpiente
             let imagenComida = new Image();
             imagenComida.src = 'imagenes/manzana.png'; 
-
-            // Cargar las imágenes para la cabeza y el cuerpo de la serpiente
             const imagenCabeza = new Image();
             imagenCabeza.src = 'imagenes/cabeza.png'; 
 
-
-            const botonAncho = 160; // Ancho del botón
-            const botonAlto = 40; // Alto del botón
-            const botonX = (tablero.width - botonAncho) / 2; // Calcula la posición X centrada
-            const botonY = tablero.height / 2; // Calcula la posición Y centrada
-
-            let botonHovered = false; // Variable para detectar si el mouse está sobre el botón
-
+            // Dimensiones y posición del botón de inicio
+            const botonAncho = 160;
+            const botonAlto = 40; 
+            const botonX = (tablero.width - botonAncho) / 2;
+            const botonY = tablero.height / 2;
+            
+            // Evento para reiniciar el juego con Enter en el Top 5
             const reiniciarConEnter = (evento) => {
                 if (pantallaActual === 'top5' && evento.key === 'Enter') {
                     evento.preventDefault();
                     document.removeEventListener('keydown', reiniciarConEnter);
-                    eventoReiniciarActivo = false; // Actualiza el estado
+                    eventoReiniciarActivo = false; 
                     reiniciarJuego();
                 }
             };
 
             /**
-             * Dibuja el botón "Jugar" en el canvas.
+             * Dibuja el botón "Jugar" en el canvas, con el texto y el rectángulo.
+             * Establece el color y la fuente para que se vea el título del juego y el botón de inicio.
              */
             function dibujarBoton() {
-                // Dibujar el título
                 dibujo.fillStyle = 'white';
                 dibujo.font = '30px Arial';
                 dibujo.textAlign = 'center';
-                dibujo.fillText('Snake', tablero.width / 2, botonY - 50); // Título sobre el botón
+                dibujo.fillText('Snake', tablero.width / 2, botonY - 50); 
 
                 dibujo.fillStyle = 'lime';
                 
-                dibujo.fillRect(botonX, botonY, botonAncho, botonAlto); // Rectángulo del botón
+                dibujo.fillRect(botonX, botonY, botonAncho, botonAlto); 
             
-                // Dibujar el texto del botón
                 dibujo.fillStyle = 'black';
                 dibujo.font = '20px Arial';
                 dibujo.textAlign = 'center';
-                dibujo.fillText('JUGAR', tablero.width / 2, botonY + 25); // Texto centrado dentro del botón
+                dibujo.fillText('JUGAR', tablero.width / 2, botonY + 25);
             }
 
 
             /**
-             * Detecta clics dentro del canvas y mira si se ha hecho clic en el botón.
+             * Detecta si se hace clic dentro del área del botón "Jugar" y, si es así, inicia el juego.
              */
             tablero.addEventListener('click', (evento) => {
-                const rect = tablero.getBoundingClientRect(); // Obtener el rectángulo del canvas
-                const clickX = evento.clientX - rect.left;  // Coordenada X relativa al canvas
-                const clickY = evento.clientY - rect.top;   // Coordenada Y relativa al canvas
+                const rect = tablero.getBoundingClientRect(); 
+                const clickX = evento.clientX - rect.left;  
+                const clickY = evento.clientY - rect.top;   
 
-                // Verificar si el clic está dentro de los límites del botón
                 if (clickX >= botonX && clickX <= botonX + botonAncho && clickY >= botonY && clickY <= botonY + botonAlto) {
-                    iniciarJuego(); // Llama a la función que inicia el juego
+                    iniciarJuego(); 
                 }
             });
 
             /**
-             * Inicia el juego y establece un intervalo para actualizar el tablero.
+             * Inicia el juego, dibuja el tablero inicial y restablece la puntuación del juego.
              */
             function iniciarJuego() {
-                dibujar(); // Dibuja la serpiente y la manzana al iniciar el juego
-
-                //juegoIniciado = true;
-                //actualizarPuntuacion(); // Inicializar la puntuación
-                //juego = setInterval(dibujar, velocidad);    
+                dibujar(); 
+                juegoIniciado = true;
+                actualizarPuntuacion(); 
             }
-            // Detectar teclas para cambiar la dirección
+
+            // Escucha los eventos de teclas presionadas y llama a la función para cambiar la dirección de la serpiente.
             document.addEventListener('keydown', cambiarDireccion);
 
             /**
-             * Cambia la dirección de la serpiente dependiendo de la tecla que presionemos
-             * y evita que la serpiente se mueva en la dirección opuesta a su movimiento actual.
-             * 
-             * @param {object} evento - Evento del teclado
+             * Cambia la dirección de la serpiente según la tecla presionada, asegurando que
+             * no pueda moverse en la dirección opuesta a la actual.
+             * También inicia el juego si no ha comenzado aún, creando un intervalo para mover la serpiente.
+             * @param {object} evento - El evento generado por la tecla presionada (keydown).
              */
-
             function cambiarDireccion(evento) {
                 const tecla = evento.keyCode;
                 if (tecla === 37 && direccion !== 'DERECHA') direccion = 'IZQUIERDA';
                 if (tecla === 38 && direccion !== 'ABAJO') direccion = 'ARRIBA';
                 if (tecla === 39 && direccion !== 'IZQUIERDA') direccion = 'DERECHA';
                 if (tecla === 40 && direccion !== 'ARRIBA') direccion = 'ABAJO';
+
+                if (direccion !== null && !juego) {
+                    juego = setInterval(mover, velocidad);
+                }
             }
 
             /**
-             * Dibuja el estado actual del juego.
-             * Borra el tablero y vuelve a dibujar la serpiente, la comida y gestiona el movimiento.
+             * Dibuja el tablero, la serpiente y la comida.
+             * 1. Dibuja la cuadrícula del tablero, con líneas verticales y horizontales.
+             * 2. Dibuja la comida en la posición correspondiente utilizando una imagen.
+             * 3. Dibuja cada segmento de la serpiente.
+             *    - La cabeza de la serpiente tiene una imagen.
+             *    - Los segmentos del cuerpo de la serpiente se dibujan como rectángulos.
              */
             function dibujar() {
                 dibujo.clearRect(0, 0, tablero.width, tablero.height);
 
-                // Lógica de movimiento
-                let cabezaX = serpiente[0].x;
-                let cabezaY = serpiente[0].y;
-
-                if (direccion === 'IZQUIERDA') cabezaX -= tamaño;
-                if (direccion === 'ARRIBA') cabezaY -= tamaño;
-                if (direccion === 'DERECHA') cabezaX += tamaño;
-                if (direccion === 'ABAJO') cabezaY += tamaño;
-
-                const nuevaCabeza = { x: cabezaX, y: cabezaY };
-
-                // Verificar si la serpiente come la comida
-                if (cabezaX === comida.x && cabezaY === comida.y) {
-                    // La serpiente ha alcanzado la comida
-                    puntuacion++; // Incrementa la puntuación
-                    actualizarPuntuacion(); // Actualiza el marcador
-
-                    comida = {
-                        x: Math.floor(Math.random() * (tablero.width / tamaño)) * tamaño,
-                        y: Math.floor(Math.random() * (tablero.height / tamaño)) * tamaño
-                    };
-                    // Asegurarse de que la comida está dentro de los límites visibles
-                    if (comida.x >= maxX) comida.x = maxX - tamaño;
-                    if (comida.y >= maxY) comida.y = maxY - tamaño;
-                    // Aumentar la velocidad
-                    aumentarVelocidad();
-                } else {
-                    serpiente.pop();
-                }
-
-                serpiente.unshift(nuevaCabeza);
-
-                // Dibujar la cuadrícula
-                dibujo.strokeStyle = '#7a8a6e'; // Color de la cuadrícula
+                dibujo.strokeStyle = '#7a8a6e'; 
                 dibujo.lineWidth = 1;
                 
                 for (let i = 0; i < tablero.width; i += tamaño) {
@@ -177,63 +150,48 @@
                     dibujo.stroke();
                 }
                 
-                // Dibujar la comida
                 dibujo.drawImage(imagenComida, comida.x, comida.y, tamaño, tamaño);
-                
-
-                // Dibujar la serpiente
+            
                 serpiente.forEach((segmento, index) => {
-                    // Dibujar la cabeza de la serpiente
                     if (index === 0) {
-                        // Guardamos la posición original
                         dibujo.save();
 
-                        // Establecer el punto de rotación en el centro de la cabeza
                         dibujo.translate(segmento.x + tamaño / 2, segmento.y + tamaño / 2);
 
-                        // Rotar dependiendo de la dirección
                         if (direccion === 'IZQUIERDA') {
-                            dibujo.rotate(Math.PI); // 180 grados
+                            dibujo.rotate(Math.PI); 
                         } else if (direccion === 'ARRIBA') {
-                            dibujo.rotate(-Math.PI / 2); // 90 grados hacia arriba
+                            dibujo.rotate(-Math.PI / 2); 
                         } else if (direccion === 'DERECHA') {
-                            dibujo.rotate(0); // 0 grados (sin rotación)
+                            dibujo.rotate(0); // 
                         } else if (direccion === 'ABAJO') {
-                            dibujo.rotate(Math.PI / 2); // 90 grados hacia abajo
+                            dibujo.rotate(Math.PI / 2); 
                         }
 
-                        // Dibujar la cabeza con la rotación aplicada
-                        dibujo.drawImage(imagenCabeza, -tamaño / 2, -tamaño / 2, tamaño, tamaño); // Cabeza de la serpiente (imagen)
+                        dibujo.drawImage(imagenCabeza, -tamaño / 2, -tamaño / 2, tamaño, tamaño); 
 
-                        // Restauramos el contexto para que no afecte a otros dibujos
                         dibujo.restore();
                     } 
                     
-                    // Dibujar el cuerpo de la serpiente (cuadrados)
                     else {
-                        dibujo.fillStyle = '#556B2F'; // Color para el cuerpo de la serpiente
-                        dibujo.fillRect(segmento.x, segmento.y, tamaño, tamaño); // Cuadrados para el cuerpo
+                        dibujo.fillStyle = '#556B2F'; 
+                        dibujo.fillRect(segmento.x, segmento.y, tamaño, tamaño);
                     }
                 });
-
-
-                // Verificar colisión con los bordes o el cuerpo
-                if (
-                    cabezaX < 0 || cabezaY < 0 ||
-                    cabezaX >= tablero.width || cabezaY >= tablero.height ||
-                    choque(nuevaCabeza, serpiente.slice(1))
-                ) {
-                    clearInterval(juego);
-                    partidaPerdida();
-                }
-
             }
+
+            /**
+             * Mueve la serpiente en la dirección indicada y controla las colisiones.
+             * 1. Si la dirección está bien, mueve la cabeza de la serpiente y le añade un nuevo trozo en la misma dirección.
+             * 2. Si la serpiente come la comida, genera una nueva posición para la comida y aumenta la puntuación.
+             * 3. Si la serpiente se mueve fuera del área del tablero o choca contra su propio cuerpo, termina el juego.
+             * 4. Actualiza la visualización del tablero después de cada movimiento.
+             */
             function mover() {
                 if (direccion === null) {
-                    return; // No mover la serpiente hasta que se elija una dirección
+                    return; 
                 }
             
-                // Crear nueva cabeza en base a la dirección actual
                 let nuevaCabeza;
                 const cabeza = serpiente[0];
             
@@ -242,24 +200,42 @@
                 if (direccion === 'ARRIBA') nuevaCabeza = { x: cabeza.x, y: cabeza.y - tamaño };
                 if (direccion === 'ABAJO') nuevaCabeza = { x: cabeza.x, y: cabeza.y + tamaño };
             
-                // Agregar nueva cabeza al comienzo de la serpiente
                 serpiente.unshift(nuevaCabeza);
             
-                // Verificar si la serpiente ha comido la manzana
-                if (nuevaCabeza.x === manzana.x && nuevaCabeza.y === manzana.y) {
-                    // Generar nueva manzana
-                    manzana = {
-                        x: Math.floor(Math.random() * maxX / tamaño) * tamaño,
-                        y: Math.floor(Math.random() * maxY / tamaño) * tamaño
-                    };
+                if (nuevaCabeza.x === comida.x && nuevaCabeza.y === comida.y) {
+                    let posicionValida = false;
+
+                    while (!posicionValida) {
+                        comida = {
+                            x: Math.floor(Math.random() * canvasWidth / tamaño) * tamaño,
+                            y: Math.floor(Math.random() * canvasHeight / tamaño) * tamaño
+                        };
+                
+                        posicionValida = !serpiente.some(segmento => segmento.x === comida.x && segmento.y === comida.y);
+                
+                        if (comida.x >= canvasWidth) comida.x = canvasWidth - tamaño;
+                        if (comida.y >= canvasHeight) comida.y = canvasHeight - tamaño;
+                    }
+
+                    puntuacion++; 
+                    actualizarPuntuacion(); 
+                    aumentarVelocidad();
                 } else {
-                    // Eliminar el último segmento de la serpiente (movimiento normal)
                     serpiente.pop();
                 }
-            
-                // Volver a dibujar todo
+
+                if (
+                    cabeza.x < 0 || cabeza.y < 0 ||
+                    cabeza.x >= tablero.width || cabeza.y >= tablero.height ||
+                    choque(nuevaCabeza, serpiente.slice(1))
+                ) {
+                    clearInterval(juego);
+                    juego = null; 
+                    partidaPerdida();
+                }
                 dibujar();
             }
+            
             /**
              * Detecta si la cabeza de la serpiente choquea con alguna parte de su cuerpo.
              * 
@@ -277,20 +253,22 @@
              */
             function aumentarVelocidad() {
                 clearInterval(juego);  
-                if (velocidad > 100) {  
-                    velocidad -= 20;
+                if (velocidad > 150) {  
+                    velocidad -= 10;  
+                } else if (velocidad > 100) {
+                    velocidad -= 5;   
                 }
-                juego = setInterval(dibujar, velocidad); 
+                juego = setInterval(mover, velocidad); 
             }
 
             /**
              * Muestra la pantalla de "Has perdido" y un formulario para introducir el nombre del jugador.
              */
             function partidaPerdida() {
-                if (pantallaActual !== 'inicio') return; // Evita múltiples llamados
-                pantallaActual = "introducirNombre"; // Actualiza el estado de la pantalla
+                if (pantallaActual !== 'inicio') return; 
+                pantallaActual = "introducirNombre"; 
 
-                clearInterval(juego); // Detener el juego
+                clearInterval(juego); 
 
                 const pantalla = document.getElementById('pantallaNombre');
                 let contenidoPantalla = document.getElementById('pantalla');
@@ -302,10 +280,7 @@
                     pantallaNombre.appendChild(contenidoPantalla);
                 }
                 
-                // Limpiar el contenido antes de agregar algo nuevo
                 contenidoPantalla.innerHTML = '';
-
-                // Reemplazar el contenido de la ventana con el formulario
                 contenidoPantalla.innerHTML = `
                     <h2>¡Has Perdido!</h2>
                     <p>Introduce tu nombre para guardar tu puntuación:</p>
@@ -316,45 +291,38 @@
                     </button>
                 `;
 
-                // Eliminar el evento de Enter para reiniciar si está activo
                 if (eventoReiniciarActivo) {
                     document.removeEventListener('keydown', reiniciarConEnter);
                     eventoReiniciarActivo = false;
                 }
 
-                // Mostrar la ventana flotante
                 pantalla.classList.add('mostrar');
-
-                // Guardar el nombre al hacer clic en "Guardar"
                 const botonGuardar = document.getElementById('guardarNombre');
                 const inputNombre = document.getElementById('nombreJugador');
 
-                // Usar un timeout breve para asegurar que el elemento esté renderizado y enfocado
                 setTimeout(() => {
                     if (inputNombre) {
                         inputNombre.focus();
                     }
                 }, 50);
 
-                // Asignar eventos a los nuevos elementos
                 if (botonGuardar && inputNombre) {
                     botonGuardar.addEventListener('click', () => nombreJugador(inputNombre));
                     inputNombre.addEventListener('keydown', (evento) => {
                         if (evento.key === 'Enter') {
-                            evento.preventDefault(); // Evitar propagación a otros eventos
+                            evento.preventDefault(); 
                             nombreJugador(inputNombre);
                         }
                     });
-                } else {
-                    console.error("No se encontraron los elementos 'guardarNombre' o 'nombreJugador'.");
-                }
+                } 
+
                 const botonReinicioPerdida = document.getElementById('reiniciarPerdida');
                 botonReinicioPerdida.addEventListener('click', reiniciarJuego);
 
             }
 
             /**
-             * Maneja el nombre que introduce el usuario y muestra el Top 5.
+             * Obtiene el nombre que ha introducido el jugador y muestra el Top 5.
              */
             function nombreJugador(inputNombre) {
                 const jugador = inputNombre.value.trim();
@@ -364,6 +332,9 @@
                 }
             }
 
+            /**
+             * Obtiene las puntuaciones del Top 5 y muestra los resultados.
+             */
             function obtenerTop5() {
                 fetch('http://localhost/snake/php/puntuaciones.php')
                     .then((response) => {
@@ -373,8 +344,7 @@
                         return response.json(); 
                     })
                     .then((data) => {
-                        console.log('Puntuaciones recibidas:', data);
-                        mostrarTop5(data); // Llama a una función para renderizar el Top 5
+                        mostrarTop5(data); 
                     })
                     .catch((error) => {
                         console.error('Error al obtener el Top 5:', error);
@@ -382,11 +352,11 @@
             }
 
             /**
-             * Muestra el Top 5.
+             * Muestra el Top 5 de jugadores con sus puntuaciones.
              */
             function mostrarTop5(puntuaciones) {
-                if (pantallaActual !== 'introducirNombre') return; // Solo si venimos de introducir nombre
-                pantallaActual = "top5"; // Actualiza el estado de la pantalla
+                if (pantallaActual !== 'introducirNombre') return; 
+                pantallaActual = "top5"; 
 
                 const pantalla = document.getElementById('pantallaNombre');
                 let contenidoPantalla = document.getElementById('pantalla');
@@ -396,10 +366,8 @@
                     return;
                 }
                 
-                // Limpiar el contenido antes de mostrar el Top 5
                 contenidoPantalla.innerHTML = '';
 
-                // Actualizar el contenido de la ventana
                 contenidoPantalla.innerHTML = `
                     <h2>Top 5 Puntuación</h2>
                     <ul style="list-style: none; padding: 0;">
@@ -413,15 +381,13 @@
                 const botonReiniciar = document.getElementById('reiniciarJuego');
                 botonReiniciar.addEventListener('click', reiniciarJuego);
 
-                // Registrar el evento Enter para reiniciar con un breve retraso
                 if (!eventoReiniciarActivo) {
                     setTimeout(() => {
                         document.addEventListener('keydown', reiniciarConEnter);
                         eventoReiniciarActivo = true;
-                    }, 100); // Esperar 100 ms para asegurarse de que no se solape
+                    }, 100); 
                 }
                 
-                // Mostrar la ventana flotante
                 pantalla.classList.add('mostrar');
             }
 
@@ -429,27 +395,28 @@
              * Reinicia el juego después de mostrar el Top 5.
              */
             function reiniciarJuego() {
-                pantallaActual = 'inicio'; // Volver al estado inicial
+                pantallaActual = 'inicio'; 
                 const ventana = document.getElementById('pantallaNombre');
-                ventana.classList.remove('mostrar'); // Ocultar ventana
+                ventana.classList.remove('mostrar'); 
 
                 puntuacion = 0;
                 actualizarPuntuacion()
 
                 serpiente = [
-                    { x: Math.floor(maxX / 2 / tamaño) * tamaño, y: Math.floor(maxY / 2 / tamaño) * tamaño } // Cabeza
+                    { x: Math.floor(canvasWidth / 2 / tamaño) * tamaño, y: Math.floor(canvasHeight / 2 / tamaño) * tamaño }, // Cabeza
+                    { x: (Math.floor(canvasWidth / 2 / tamaño) - 1) * tamaño, y: Math.floor(canvasHeight / 2 / tamaño) * tamaño }, // Primer segmento del cuerpo
+                    { x: (Math.floor(canvasWidth / 2 / tamaño) - 2) * tamaño, y: Math.floor(canvasHeight / 2 / tamaño) * tamaño }  // Segundo segmento del cuerpo
                 ];
-                
 
-                direccion = null; // Iniciar sin dirección
+                direccion = null; 
                 comida = {
                     x: Math.floor(Math.random() * (tablero.width / tamaño)) * tamaño,
                     y: Math.floor(Math.random() * (tablero.height / tamaño)) * tamaño
                 };
                 velocidad = 300;
                 juegoIniciado = false;
-                clearInterval(juego); // Asegurarse de detener cualquier juego en progreso
-        
+                clearInterval(juego); 
+                juego = null
                 iniciarJuego()
             }
 
@@ -469,7 +436,7 @@
                 })
                     .then((response) => response.json())
                     .then((data) => {
-                        console.log(data.mensaje); // Mensaje de éxito
+                        console.log(data.mensaje); 
                         obtenerTop5();
                     })
                     .catch((error) => {
@@ -477,14 +444,21 @@
                     });
             }
 
+            /**
+             * Actualiza la puntuación mostrada en la pantalla.
+             */
             function actualizarPuntuacion() {
                 const marcador = document.getElementById('puntuacion');
                 marcador.innerHTML = `
                 <img src="imagenes/manzana.png" alt="Manzana" style="width: 40px; height: 40px; vertical-align: middle;">
                 ${puntuacion}
                 `;
+
+                marcador.classList.add('puntuacion-cambio');
+                setTimeout(() => {
+                    marcador.classList.remove('puntuacion-cambio');
+                }, 300);
             }
 
-            // Dibuja el botón inicial al cargar la página
             dibujarBoton();
         });
